@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # MySQL Database for DVWA
+  db:
+    image: mysql:5.7
+    container_name: dvwa_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: dvwa
+      MYSQL_USER: dvwa
+      MYSQL_PASSWORD: p@ssw0rd
+    volumes:
+      - dvwa_db_data:/var/lib/mysql
+    networks:
+      - dvwa_network
+    restart: unless-stopped
+
+  # DVWA Application
+  dvwa:
+    image: vulnerables/web-dvwa
+    container_name: dvwa_app
+    environment:
+      DB_SERVER: db
+      DB_DATABASE: dvwa
+      DB_USER: dvwa
+      DB_PASSWORD: p@ssw0rd
+    depends_on:
+      - db
+    networks:
+      - dvwa_network
+    restart: unless-stopped
+
+  # OWASP ModSecurity CRS WAF (Apache)
+  modsecurity-crs:
+    image: owasp/modsecurity-crs:apache
+    container_name: modsecurity_waf
+    environment:
+      - PARANOIA=1
+      - ANOMALY_INBOUND=5
+      - ANOMALY_OUTBOUND=4
+      - BACKEND=http://dvwa:80
+      - MODSEC_RULE_ENGINE=On
+      - MODSEC_AUDIT_LOG=/var/log/modsecurity/audit.log
+      - MODSEC_AUDIT_LOG_TYPE=Serial
+      - MODSEC_AUDIT_LOG_FORMAT=JSON
+      - MODSEC_DEBUG_LOG=/var/log/modsecurity/debug.log
+      - MODSEC_DEBUG_LOG_LEVEL=3
+      - MODSEC_TMP_DIR=/tmp
+      - MODSEC_DATA_DIR=/tmp
+      - MODSEC_UPLOAD_DIR=/tmp
+      - MODSEC_DEFAULT_PHASE1_ACTION=phase:1,deny,log,status:403
+      - MODSEC_DEFAULT_PHASE2_ACTION=phase:2,deny,log,status:403
+      - MODSEC_RESP_BODY_ACCESS=On
+      - MODSEC_RESP_BODY_MIMETYPE=text/plain text/html text/xml application/json
+      - MODSEC_REQ_BODY_ACCESS=On
+      - MODSEC_REQ_BODY_LIMIT=13107200
+      - MODSEC_REQ_BODY_NOFILES_LIMIT=131072
+      - MODSEC_RESP_BODY_LIMIT=524288
+      - MODSEC_RESP_BODY_LIMIT_ACTION=ProcessPartial
+      - MODSEC_PCRE_MATCH_LIMIT=1000
+      - MODSEC_PCRE_MATCH_LIMIT_RECURSION=1000
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./modsecurity/custom-rules.conf:/etc/modsecurity.d/owasp-crs/rules/custom-rules.conf:ro
+      - ./modsecurity/exclusions.conf:/etc/modsecurity.d/owasp-crs/rules/exclusions.conf:ro
+      - modsec_logs:/var/log/modsecurity
+    depends_on:
+      - dvwa
+    networks:
+      - dvwa_network
+    restart: unless-stopped
+
+volumes:
+  dvwa_db_data:
+  modsec_logs:
+
+networks:
+  dvwa_network:
+    driver: bridge
