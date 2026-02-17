@@ -33,7 +33,7 @@ services:
 
   # OWASP ModSecurity CRS WAF (Apache) - Default protection level
   modsecurity-crs:
-    image: owasp/modsecurity-crs:apache
+    image: owasp/modsecurity-crs:nginx
     container_name: modsecurity_waf
     environment:
       - BACKEND=http://dvwa:80
