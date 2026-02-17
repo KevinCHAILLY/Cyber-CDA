@@ -67,7 +67,7 @@ services:
    restart: always
    image: nginx:latest
    volumes:
-   - ./nginx.template:/etc/nginx/templates:ro
+   - ./nginx.template:/etc/nginx/templates/guacamole.conf.template:ro
    - ./nginx/ssl/self.cert:/etc/nginx/ssl/self.cert:ro
    - ./nginx/ssl/self-ssl.key:/etc/nginx/ssl/self-ssl.key:ro
    ports:
