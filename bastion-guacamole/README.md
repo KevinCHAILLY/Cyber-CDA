@@ -60,16 +60,22 @@ Ce lab permet aux étudiants de :
 # Se placer dans le répertoire
 cd bastion-guacamole
 
+# mettre les droits d'execution sur le fichier de préparation
+chmod +x prepare.sh
+
+# lancer la préparation de la BDD
+./prepare.sh
+
 # Démarrer les services
-docker-compose up -d
+docker compose up -d
 
 # Vérifier que tout est démarré
-docker-compose ps
+docker compose ps
 ```
 
 ### Accès
 
-- **URL** : `http://localhost:8080/guacamole/`
+- **URL** : `https://IPVMBASTION:8443/`
 - **Identifiants par défaut** :
   - Username : `guacadmin`
   - Password : `guacadmin`
@@ -105,19 +111,19 @@ docker-compose ps
 
 ```bash
 # Démarrer
-docker-compose up -d
+docker compose up -d
 
 # Arrêter
-docker-compose down
+docker compose down
 
 # Voir les logs
-docker-compose logs -f
+docker compose logs -f
 
 # Logs d'un service spécifique
-docker-compose logs -f guacamole
+docker compose logs -f guacamole
 
 # Redémarrer un service
-docker-compose restart guacamole
+docker compose restart guacamole
 
 # Accès shell à la base de données
 docker exec -it guacamole_db psql -U guacamole_user -d guacamole_db
